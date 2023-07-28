@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="GoCars:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/GoCars_jar</output-path>
+    <root id="archive" name="GoCars.jar">
+      <element id="module-output" name="GoCars" />
+    </root>
+  </artifact>
+</component>
