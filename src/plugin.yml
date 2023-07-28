@@ -1,0 +1,20 @@
+name: GoCars
+main: com.owen2k6.gocars.GoCars
+version: 1.0
+author: Owen2k6
+commands:
+  gocars:
+    description: Turns your boat into a car
+    usage: /<command>
+  goboat:
+    description: Turns your car into a boat
+    usage: /<command>
+  roadrules:
+    description: Shows the road rules
+    usage: /<command>
+  speedlimits:
+    description: Shows the speed limit
+    usage: /<command>
+  roadsigns:
+    description: Shows the road signs
+    usage: /<command>
