@@ -6,18 +6,13 @@
 package com.owen2k6.gocars;
 
 import java.util.Calendar;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import net.minecraft.server.EntityBoat;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftBoat;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.entity.Boat;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -39,22 +34,24 @@ public class BoatHandler {
     private double throttle = 1.0;
     public double fromYaw = 0.0;
     public double toYaw = 0.0;
-    private float hoverHeight = 0;
+    private float hoverHeight = 0.0F;
     private boolean goingDown = false;
     private boolean goingUp = false;
     private boolean firstRun = true;
     private final double DOWNWARD_DRIFT = -0.037999998673796664;
     private final double COMPENSATION = 0.038;
     private final double MAX_BUOYANCY = 0.1;
-    private float MAX_HOVER_HEIGHT = 1;
+    private float MAX_HOVER_HEIGHT = 1.0F;
+    private String ownerUsername;
 
-    public BoatHandler(Boat newBoat, int newMode, int ID) {
+    public BoatHandler(Boat newBoat, int newMode, int ID, String ownerUsername) {
         this.boat = newBoat;
         this.mode = newMode;
         this.entityID = ID;
         this.cal = Calendar.getInstance();
         this.previousMotion = this.boat.getVelocity().clone();
         this.previousLocation = this.getLocation().toVector().clone();
+        this.ownerUsername = ownerUsername;
         if (this.isMoving()) {
             this.wasMovingLastTick = true;
         }
@@ -62,8 +59,16 @@ public class BoatHandler {
         GoCars.boats.put(this.boat.getEntityId(), this);
     }
 
+    public String getOwnerUsername() {
+        return this.ownerUsername;
+    }
+
+    public boolean isOwner(Player player) {
+        return player != null && player.getName().equals(this.ownerUsername);
+    }
+
     private double getYaw() {
-        return (double) this.boat.getLocation().getYaw();
+        return (double)this.boat.getLocation().getYaw();
     }
 
     public void setYaw(double fromYaw, double toYaw) {
@@ -143,7 +148,7 @@ public class BoatHandler {
     }
 
     private Player getPlayer() {
-        Player p = (Player) this.boat.getPassenger();
+        Player p = (Player)this.boat.getPassenger();
         return p;
     }
 
@@ -164,7 +169,7 @@ public class BoatHandler {
     }
 
     private boolean isGrounded() {
-        EntityBoat be = (EntityBoat) ((CraftBoat) this.boat).getHandle();
+        EntityBoat be = (EntityBoat)((CraftBoat)this.boat).getHandle();
         return be.onGround;
     }
 
@@ -224,65 +229,47 @@ public class BoatHandler {
     public void speedUpBoat(double factor, Vector vel) {
         double curX = vel.getX();
         double curZ = vel.getZ();
-        double newX = curX * factor;
-        double newZ;
-        if (Math.abs(newX) > 0.4) {
-            if (newX < 0.0) {
-                newX = -0.4;
-            } else {
-                newX = 0.4;
-            }
-
-            newZ = 0.0;
-            if (curZ != 0.0) {
-                newZ = 0.4 / Math.abs(curX / curZ);
-                if (curZ < 0.0) {
-                    newZ *= -1.0;
-                }
-            }
-
-            this.setMotion(newX, vel.getY(), newZ);
-        } else {
-            newZ = curZ * factor;
-            if (Math.abs(newZ) > 0.4) {
-                if (newZ < 0.0) {
-                    newZ = -0.4;
-                } else {
-                    newZ = 0.4;
-                }
-
-                newX = 0.0;
-                if (curX != 0.0) {
-                    newX = 0.4 / (curZ / curX);
-                    if (curX < 0.0) {
-                        newX *= -1.0;
-                    }
-                }
-
-                this.setMotion(newX, vel.getY(), newZ);
-            } else {
-                this.setMotion(newX, vel.getY(), newZ);
-            }
-        }
+        double var10000 = curX * factor;
     }
 
     public void movementHandler(Vector vel) {
         Player p = this.getPlayer();
         Vector newvel = this.boat.getVelocity();
+        this.throttle = 5.0;
         if (this.throttle != 1.0) {
             this.speedUpBoat(this.throttle, newvel);
         }
 
-        if (this.mode == 0) {
-            this.doNormal(vel);
-        } else if (this.mode == 1) {
-            this.doFlying(vel);
-        } else if (this.mode == 2) {
-            this.doUnderwater(vel);
-        } else if (this.mode == 3) {
-            this.doHover(vel);
-        } else if (this.mode == 4) {
-            this.doGlider(vel);
+        this.MAX_HOVER_HEIGHT = 0.6F;
+        int x = this.boat.getLocation().getBlockX();
+        int y = this.boat.getLocation().getBlockY();
+        int z = this.boat.getLocation().getBlockZ();
+        boolean goDown = false;
+        int blockY = 0;
+        Block block = null;
+        this.getLocation().setYaw((float)(this.getYaw() * 6.0));
+
+        for(int i = 0; (float)i != this.MAX_HOVER_HEIGHT + 64.0F; ++i) {
+            block = this.boat.getWorld().getBlockAt(x, y - blockY, z);
+            if (block.getType() != Material.AIR) {
+                if (block.getType() == Material.WATER) {
+                }
+                break;
+            }
+
+            ++blockY;
+            if ((float)i > this.MAX_HOVER_HEIGHT + 1.0F) {
+                goDown = true;
+            }
+        }
+
+        this.hoverHeight = (float)block.getY() + this.MAX_HOVER_HEIGHT * 2.0F;
+        if (this.boat.getLocation().getY() < (double)this.hoverHeight + 0.6) {
+            this.setMotionY(0.35);
+        } else if (goDown && this.boat.getLocation().getY() > (double)this.hoverHeight + 0.6) {
+            this.setMotionY(-0.25);
+        } else {
+            this.setMotionY(0.0);
         }
 
         this.previousMotion = this.boat.getVelocity();
@@ -292,38 +279,13 @@ public class BoatHandler {
         this.setMotionY(MotionY);
     }
 
-    public void doArmSwing() {
-        if (this.isAttacking) {
-            boolean var1 = false;
-        } else if (this.mode != 4 && this.getItemInHandID() == 280) {
-            this.changeThrottle(0.25);
-            this.getPlayer().sendMessage(ChatColor.GREEN + "You accelerate the car, Your speed is now " + this.throttle + "x.");
-            this.isAttacking = false;
-        } else if (this.mode != 4 && this.getItemInHandID() == 336){
-            this.setThrottle(0.0);
-            this.getPlayer().sendMessage(ChatColor.DARK_RED + "You bloody idiot. You just slammed the brakes. You could've caused a massive crash!");
-            this.isAttacking = false;
-        }
-    }
-
-    public void doRightClick() {
-        if (this.getItemInHandID() == 280) {
-            this.changeThrottle(-0.25);
-            this.getPlayer().sendMessage(ChatColor.GOLD + "You decelerate. Your speed is now " + this.throttle + "x");
-        } else if (this.getItemInHandID() == 336) {
-            this.setThrottle(0.0);
-            this.getPlayer().sendMessage(ChatColor.DARK_RED + "You bloody idiot. You just slammed the brakes. You could've caused a massive crash!");
-        }
-
-    }
-
     private void doNormal(Vector vel) {
-        CraftEntity ce = (CraftEntity) this.boat.getPassenger();
+        CraftEntity ce = (CraftEntity)this.boat.getPassenger();
         Vector playerVelocity = ce.getVelocity().clone();
         double playerVelocityX = playerVelocity.getX();
         double playerVelocityZ = playerVelocity.getZ();
         if ((playerVelocityX != 0.0 || playerVelocityZ != 0.0) && this.isGrounded()) {
-            this.getLocation().setYaw((float) (this.getYaw() * 2.5));
+            this.getLocation().setYaw((float)(this.getYaw() * 2.5));
             this.speedUpBoat(10.0, this.boat.getVelocity());
         }
 
@@ -350,177 +312,16 @@ public class BoatHandler {
 
     }
 
-    private void doGlider(Vector vel) {
-        CraftEntity ce = (CraftEntity) this.boat.getPassenger();
-        if (this.getBlockBeneath().getType() == Material.AIR) {
-            vel.setY(-0.075);
-        }
-
-        if (vel.getY() < -0.075) {
-            vel.setY(-0.075);
-        }
-
-        this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-    }
-
-    private void doFlying(Vector vel) {
-        if (this.goingUp) {
-            if (vel.getY() <= 0.0) {
-                this.goingUp = false;
-                vel.setY(0.0);
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        } else if (this.goingDown) {
-            if (vel.getY() <= 0.0) {
-                vel.setY(vel.getY() + 0.25);
-                if (vel.getY() >= 0.0) {
-                    this.goingDown = false;
-                }
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        } else if (vel.getY() <= 0.0) {
-            if (this.boat.getVelocity().getY() <= 0.0 && this.boat.getVelocity().getY() >= -0.037999998673796664) {
-                vel.setY(0.038);
-            } else {
-                vel.setY(0.0);
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        } else {
-            if (this.boat.getVelocity().getY() <= 0.0 && this.boat.getVelocity().getY() >= -0.037999998673796664) {
-                vel.setY(0.038);
-            } else {
-                vel.setY(0.0);
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        }
-    }
-
-    private void doUnderwater(Vector vel) {
-        Player p = this.getPlayer();
-        if (!this.goingUp) {
-            vel.setY(vel.getY() - 0.03);
-        } else {
-            vel.setY(vel.getY() - 0.03);
-        }
-
-        if (vel.getY() > 0.1) {
-            vel.setY(0.1);
-        }
-
-        if (!this.goingUp && vel.getY() > 0.0) {
-            vel.setY(-0.15);
-        }
-
-        this.getLocation().setYaw((float) (this.getYaw() * 2.0));
-        if (p.getRemainingAir() != p.getMaximumAir() && (Permission.genericCheck(p, "GoCars.player.air") || GoCars.helmets.contains("" + this.getHelmetID()) && Permission.genericCheck(p, "GoCars.items.helmets"))) {
-            p.setRemainingAir(p.getMaximumAir());
-            p.setMaximumAir(p.getMaximumAir());
-        }
-
-        if (this.goingUp) {
-            vel.setY(vel.getY() - 0.009);
-            if (vel.getY() <= 0.025) {
-                this.goingUp = false;
-                vel.setY(0.0);
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        } else if (this.goingDown) {
-            if (vel.getY() <= -0.6) {
-                vel.setY(-0.6);
-                if (vel.getY() >= 0.0) {
-                    this.goingDown = false;
-                }
-            }
-
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        } else {
-            this.setMotion(vel.getX(), vel.getY(), vel.getZ());
-        }
-    }
-
-    private void doHover(Vector vel) {
-        if (this.getItemInHandID() == 263 && Permission.genericCheck(this.getPlayer(), "GoCars.items.coal")) {
-            this.MAX_HOVER_HEIGHT = 0.5F;
-        } else {
-            this.MAX_HOVER_HEIGHT = 0.5F;
-        }
-
-        int x = this.boat.getLocation().getBlockX();
-        int y = this.boat.getLocation().getBlockY();
-        int z = this.boat.getLocation().getBlockZ();
-        boolean goDown = false;
-        int blockY = 0;
-        Block block = null;
-        this.getLocation().setYaw((float) (this.getYaw() * 6.0));
-
-        for (int i = 0; i != this.MAX_HOVER_HEIGHT + 64; ++i) {
-            block = this.boat.getWorld().getBlockAt(x, y - blockY, z);
-            if (block.getType() != Material.AIR) {
-                if (block.getType() == Material.WATER) {
-                }
-                break;
-            }
-
-            ++blockY;
-            if (i > this.MAX_HOVER_HEIGHT + 1) {
-                goDown = true;
-            }
-        }
-
-        this.hoverHeight = block.getY() + this.MAX_HOVER_HEIGHT * 2;
-        if (this.boat.getLocation().getY() < (double) this.hoverHeight + 0.6) {
-            this.setMotionY(0.35);
-        } else if (goDown && this.boat.getLocation().getY() > (double) this.hoverHeight + 0.6) {
-            this.setMotionY(-0.25);
-        } else {
-            this.setMotionY(0.0);
-        }
-    }
-
-    private void doDrill() {
-        for (int x = -2; x <= 2; ++x) {
-            for (int z = -2; z <= 2; ++z) {
-                for (int y = 4; y >= 1; --y) {
-                    Block block = this.boat.getWorld().getBlockAt(this.boat.getLocation().getBlockX() - x, this.boat.getLocation().getBlockY() - y, this.boat.getLocation().getBlockZ() - z);
-                    if (!block.getType().equals(Material.AIR) && block.getTypeId() != 7 && block.getTypeId() != 8 && block.getTypeId() != 9 && block.getTypeId() != 10 && block.getTypeId() != 11) {
-                        Material mat = block.getType();
-                        block.setType(Material.AIR);
-                        this.boat.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(mat, 1));
-                    }
-                }
-            }
-        }
-
-    }
-
     public void doYaw(Location from, Location to) {
-        this.fromYaw = (double) from.getYaw();
-        this.toYaw = (double) to.getYaw();
+        this.fromYaw = (double)from.getYaw();
+        this.toYaw = (double)to.getYaw();
         if (this.toYaw >= this.fromYaw - 0.025 && this.toYaw <= this.fromYaw + 0.025) {
-            to.setYaw((float) (this.fromYaw * 2.8));
+            to.setYaw((float)(this.fromYaw * 2.8));
         } else if (this.toYaw >= this.fromYaw - 0.7 && this.toYaw <= this.fromYaw + 0.7) {
-            to.setYaw((float) (this.fromYaw * 5.3));
+            to.setYaw((float)(this.fromYaw * 5.3));
         } else if (this.toYaw >= this.fromYaw - 3.0 && this.toYaw <= this.fromYaw + 3.0) {
-            to.setYaw((float) (this.fromYaw * 3.3));
+            to.setYaw((float)(this.fromYaw * 3.3));
         }
 
-    }
-
-    class DropTNT extends TimerTask {
-        private Item i;
-
-        public DropTNT(Item i) {
-            this.i = i;
-        }
-
-        public void run() {
-            //We. Don't. Need. This.
-
-        }
     }
 }

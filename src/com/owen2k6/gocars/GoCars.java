@@ -5,12 +5,13 @@
 
 package com.owen2k6.gocars;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Logger;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -48,13 +49,12 @@ public class GoCars extends JavaPlugin {
         pm.registerEvent(Type.PLAYER_INTERACT, this.pl, Priority.Normal, this);
         this.populateHelmets();
         PluginDescriptionFile pdfFile = this.getDescription();
-        Permission.initialize(this.getServer());
-        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (" + "Caribbean" + ") loaded");
+        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (Caribbean) loaded");
     }
 
     public void onDisable() {
         PluginDescriptionFile pdfFile = this.getDescription();
-        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (" + "Caribbean" + ") disabled");
+        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (Caribbean) disabled");
     }
 
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
@@ -63,76 +63,182 @@ public class GoCars extends JavaPlugin {
             sender.sendMessage("[GoCars]: Must be ingame to use this command.");
             return true;
         } else {
-            Player player = (Player) sender;
+            Player player = (Player)sender;
             commandName = "/" + commandName;
             String parameters = "";
             String[] var11 = args;
             int var10 = args.length;
 
             String fullCommand;
-            for (int var9 = 0; var9 < var10; ++var9) {
+            for(int var9 = 0; var9 < var10; ++var9) {
                 fullCommand = var11[var9];
                 parameters = parameters + " " + fullCommand;
             }
 
             fullCommand = commandName + parameters;
             String[] split = fullCommand.split(" ");
-            if ((split[0].equals("/gocars"))) {
-                BoatHandler boat = PlayerListen.getBoatHandler((Boat) player.getVehicle());
-                player.sendMessage(ChatColor.RED + "Boats must be in water to activate car mode correctly!");
-                player.sendMessage(ChatColor.GOLD + "Your boat is now in Car mode!");
-                player.sendMessage(ChatColor.AQUA + "You will need a Stick to control your speed!");
-                player.sendMessage(ChatColor.AQUA + "Stick Controls: Left Click to accelerate, Right Click to decelerate!");
-                player.sendMessage(ChatColor.AQUA + "Your boat should hover above the ground, use it like a normal boat to drive!");
-                playerModes.put(player, 3);
-                boat.setMode(3);
-                return true;
-            } else if ((split[0].equals("/goboat"))) {
-                BoatHandler boat = PlayerListen.getBoatHandler((Boat) player.getVehicle());
-                player.sendMessage(ChatColor.GOLD + "Your boats will no longer become a car.");
-                playerModes.put(player, 0);
-                boat.setMode(0);
-                return true;
-            } else if ((split[0].equals("/roadrules"))) {
-                player.sendMessage(ChatColor.GOLD + "Road Rules:");
-                player.sendMessage(ChatColor.AQUA + "1. You must drive on the left side of the road.");
-                player.sendMessage(ChatColor.AQUA + "2. You must not drive into players.");
-                player.sendMessage(ChatColor.AQUA + "3. You must not drive into buildings. (you will most likely lose your boat.)");
-                player.sendMessage(ChatColor.AQUA + "4. You must drive on the road.");
-                player.sendMessage(ChatColor.AQUA + "5. Stick to the speed limits. (/speedlimits)");
-                player.sendMessage(ChatColor.AQUA + "6. Be aware of the road sign colour formats. (/roadsigns)");
-                player.sendMessage(ChatColor.AQUA + "7. You must not drive into other vehicles.");
-                return true;
-            } else if ((split[0].equals("/speedlimits"))){
-                player.sendMessage(ChatColor.GOLD + "Speed Limits:");
-                player.sendMessage(ChatColor.GOLD + "If the road states a different speed limit, you must follow it.");
-                player.sendMessage(ChatColor.GOLD + "Speeds are in N.Nx format so you dont need to worry about conversions");
-                player.sendMessage(ChatColor.AQUA + "CLASS P ROADS (private roads): No limit");
-                player.sendMessage(ChatColor.AQUA + "CLASS MX ROADS: 4.2x");
-                player.sendMessage(ChatColor.AQUA + "CLASS M ROADS: 4.0x");
-                player.sendMessage(ChatColor.AQUA + "CLASS A ROADS: 3.5x");
-                player.sendMessage(ChatColor.AQUA + "CLASS B ROADS: 2.5x");
-                player.sendMessage(ChatColor.AQUA + "CLASS C ROADS: 1.5x");
-                player.sendMessage(ChatColor.AQUA + "CLASS D ROADS: 0.5x");
-                return true;
-            } else if ((split[0].equals("/roadsigns"))){
-                player.sendMessage(ChatColor.GOLD + "Road Sign Colour Formats:");
-                player.sendMessage(ChatColor.GOLD + "Road signs are colour coded to help you understand the road.");
-                player.sendMessage(ChatColor.AQUA + "CLASS P ROADS are not affiliated with RoadsGMC. They are private roads.");
-                player.sendMessage(ChatColor.AQUA + "CLASS MX ROADS: "+ ChatColor.BLUE +"Dark Blue");
-                player.sendMessage(ChatColor.AQUA + "CLASS M ROADS: "+ ChatColor.AQUA +"Light Blue");
-                player.sendMessage(ChatColor.AQUA + "CLASS A ROADS: "+ ChatColor.GREEN +"Green");
-                player.sendMessage(ChatColor.AQUA + "CLASS B ROADS: "+ ChatColor.WHITE +"White");
-                player.sendMessage(ChatColor.AQUA + "CLASS C ROADS: "+ ChatColor.WHITE +"Light Grey");
-                player.sendMessage(ChatColor.AQUA + "CLASS D ROADS: "+ ChatColor.WHITE +"Black");
-                player.sendMessage(ChatColor.AQUA + "Informational Signs:"+ ChatColor.YELLOW +"Yellow");
-                player.sendMessage(ChatColor.AQUA + "Warning Signs:"+ ChatColor.RED +"Red");
-                player.sendMessage(ChatColor.AQUA + "Speed Limit:"+ ChatColor.RED +"Red ring"+ChatColor.AQUA +" with a" + ChatColor.WHITE + " white centre.");
-                return true;
-            }
+            BoatHandler boat;
+            switch (split[0]) {
+                case "/car":
+                    boat = PlayerListen.getBoatHandler((Boat)player.getVehicle());
+                    player.sendMessage(ChatColor.RED + "Boats must be in water to activate car mode correctly!");
+                    player.sendMessage(ChatColor.GOLD + "Your boat is now in Car mode!");
+                    player.sendMessage(ChatColor.AQUA + "Your boat should hover above the ground, use it like a normal boat to drive!");
+                    playerModes.put(player, 3);
+                    boat.setMode(3);
+                    return true;
+                case "/boat":
+                    boat = PlayerListen.getBoatHandler((Boat)player.getVehicle());
+                    player.sendMessage(ChatColor.GOLD + "You have disabled car mode.");
+                    playerModes.put(player, 0);
+                    boat.setMode(0);
+                    return true;
+                case "/dvla":
+                    if (split.length == 1) {
+                        player.sendMessage(ChatColor.AQUA + "The DVLA ensures that players are educated in the rules of the road. And have all nessaesary documents.");
+                        return true;
+                    } else {
+                        switch (split[1]) {
+                            case "rules":
+                                player.sendMessage(ChatColor.GOLD + "Road Rules:");
+                                player.sendMessage(ChatColor.AQUA + "1. You must drive on the left side of the road.");
+                                player.sendMessage(ChatColor.AQUA + "2. Abide by all speed limits.");
+                                player.sendMessage(ChatColor.AQUA + "3. Avoid crashing into other vehicles.");
+                                player.sendMessage(ChatColor.AQUA + "4. Avoid crashing into buildings. (Your boat will most likely be destroyed.)");
+                                player.sendMessage(ChatColor.AQUA + "5. You must have a valid driving licence and registration.");
+                                player.sendMessage(ChatColor.AQUA + "6. Read all provided info panels on the DVLA command service.");
+                                break;
+                            case "signs":
+                                player.sendMessage(ChatColor.GOLD + "Road Signs:");
+                                player.sendMessage(ChatColor.AQUA + "Our signs on the road network are colour coded to help you understand the road.");
+                                player.sendMessage(ChatColor.AQUA + "CLASS P ROADS are not affiliated with RoadsGMC. They are private roads.");
+                                player.sendMessage(ChatColor.AQUA + "CLASS M ROADS: " + ChatColor.AQUA + "Blue(AQUA)");
+                                player.sendMessage(ChatColor.AQUA + "CLASS A ROADS: " + ChatColor.GREEN + "Green");
+                                player.sendMessage(ChatColor.AQUA + "CLASS B ROADS: " + ChatColor.WHITE + "White");
+                                player.sendMessage(ChatColor.AQUA + "CLASS C ROADS: " + ChatColor.WHITE + "WHITE");
+                                break;
+                            case "speed":
+                                player.sendMessage(ChatColor.GOLD + "Speed Limits:");
+                                player.sendMessage(ChatColor.GOLD + "If the road states a different speed limit, you must follow it.");
+                                player.sendMessage(ChatColor.RED + "Due to limitations on MC, We are lenient on speed limits as you can't easily find out your speeds.");
+                                player.sendMessage(ChatColor.AQUA + "CLASS P ROADS: Recommended limit is 70mph.");
+                                player.sendMessage(ChatColor.AQUA + "CLASS M ROADS: 70mph. (31 blocks per second)");
+                                player.sendMessage(ChatColor.AQUA + "CLASS A ROADS: 70mph. (31 blocks per second)");
+                                player.sendMessage(ChatColor.AQUA + "CLASS B ROADS: 60mph. (27 blocks per second)");
+                                player.sendMessage(ChatColor.AQUA + "CLASS C ROADS: 20mph. (9 blocks per second)");
+                                break;
+                            case "classes":
+                                player.sendMessage(ChatColor.GOLD + "Road Classes:");
+                                player.sendMessage(ChatColor.AQUA + "CLASS P ROADS: Private Road not managed by RoadsGMC.");
+                                player.sendMessage(ChatColor.AQUA + "CLASS M ROADS: Motorway");
+                                player.sendMessage(ChatColor.AQUA + "CLASS A ROADS: Priority Road");
+                                player.sendMessage(ChatColor.AQUA + "CLASS B ROADS: Back roads");
+                                player.sendMessage(ChatColor.AQUA + "CLASS C ROADS: City Roads");
+                                break;
+                            case "licence":
+                                player.sendMessage(ChatColor.GOLD + "Licence:");
+                                player.sendMessage(ChatColor.AQUA + "To get a licence, you must register for one at the DVLA");
+                                player.sendMessage(ChatColor.AQUA + "We have several locations you may visit to register.");
+                                player.sendMessage(ChatColor.AQUA + "You may also register online on Discord in the #roadsgmc channel.");
+                                player.sendMessage(ChatColor.AQUA + "You must have a valid licence to drive on the road network.");
+                                break;
+                            case "registration":
+                                player.sendMessage(ChatColor.GOLD + "Registration:");
+                                player.sendMessage(ChatColor.AQUA + "You are automatically registered when you get a licence.");
+                                player.sendMessage(ChatColor.AQUA + "Your registration plate is always with you no matter what vehicle you drive.");
+                                break;
+                            case "penalties":
+                                player.sendMessage(ChatColor.GOLD + "Penalties:");
+                                player.sendMessage(ChatColor.AQUA + "If you break the rules of the road, you will be fined.");
+                                player.sendMessage(ChatColor.AQUA + "We are able to monitor vehicles on the road network.");
+                                player.sendMessage(ChatColor.AQUA + "These fines are issued automatically.");
+                                player.sendMessage(ChatColor.AQUA + "Below is a list of penalties and what to expect.");
+                                player.sendMessage(ChatColor.AQUA + "Speeding: £0.51 per block over the speed limit.");
+                                player.sendMessage(ChatColor.AQUA + "Driving on the wrong side of the road: £4.00");
+                                player.sendMessage(ChatColor.AQUA + "Abandoning a vehicle: £2.00");
+                                player.sendMessage(ChatColor.AQUA + "Improper use of hard shoulder: £1.00");
+                                break;
+                            case "locations":
+                                player.sendMessage(ChatColor.GOLD + "Locations:");
+                                player.sendMessage(ChatColor.AQUA + "DVLA Goplexia: " + ChatColor.AQUA + "X: 122 Z: -170");
+                                player.sendMessage(ChatColor.AQUA + "DVLA Omegamall: " + ChatColor.AQUA + "Under Construction");
+                                break;
+                            case "lookup":
+                                if (split.length == 2) {
+                                    player.sendMessage(ChatColor.RED + "You must specify a player to lookup.");
+                                    return true;
+                                }
 
-            else {
-                return false;
+                                String target = split[2];
+                                if (target == null) {
+                                    player.sendMessage(ChatColor.RED + "You must specify a player to lookup.");
+                                    return true;
+                                }
+
+                                String filePath = "plugins/GoCars/" + target + ".txt";
+                                String registrationCode = "";
+                                String Status = "";
+                                String issuedate = "";
+                                String expirydate = "";
+                                long daysAgo = 0L;
+                                int points = 0;
+
+                                try {
+                                    BufferedReader reader = new BufferedReader(new FileReader(filePath));
+                                    registrationCode = reader.readLine();
+                                    String pointsStr = reader.readLine();
+                                    if (pointsStr != null) {
+                                        points = Integer.parseInt(pointsStr);
+                                    }
+
+                                    Status = reader.readLine();
+                                    issuedate = reader.readLine();
+                                    String expiryunix = reader.readLine();
+                                    long expiry = Long.parseLong(expiryunix);
+                                    long currentTimestamp = Instant.now().getEpochSecond();
+                                    long thirtyDaysAgo = currentTimestamp - 2592000L;
+                                    daysAgo = (currentTimestamp - expiry) / 86400L;
+                                    reader.close();
+                                } catch (FileNotFoundException var36) {
+                                    registrationCode = "Not on record.";
+                                    points = 0;
+                                    player.sendMessage(var36.toString());
+                                } catch (Exception var37) {
+                                    var37.printStackTrace();
+                                    player.sendMessage(var37.toString());
+                                }
+
+                                if (!player.hasPermission("dvla.scan") && !target.equals(player.getName())) {
+                                    player.sendMessage(ChatColor.GOLD + "DVLA System Search for " + target + " has returned the following:");
+                                    player.sendMessage(ChatColor.RED + "You lack permissions to view the Licence information of this driver.");
+                                    player.sendMessage(ChatColor.AQUA + "Vehicle Registration: " + registrationCode);
+                                } else {
+                                    player.sendMessage(ChatColor.GOLD + "DVLA System Search for " + target + " has returned the following:");
+                                    player.sendMessage(ChatColor.AQUA + "Vehicle Registration: " + registrationCode);
+                                    player.sendMessage(ChatColor.AQUA + "Licence Points: " + points);
+                                    player.sendMessage(ChatColor.AQUA + "Licence Status: " + Status);
+                                    player.sendMessage(ChatColor.AQUA + "Licence Issue Date: " + issuedate);
+                                    player.sendMessage(ChatColor.AQUA + "Tax was paid: " + (daysAgo < 30L ? ChatColor.GREEN + "" + daysAgo + " days ago." : ChatColor.RED + "" + daysAgo + " days ago."));
+                                }
+                                break;
+                            case "help":
+                                player.sendMessage(ChatColor.GOLD + "Help:");
+                                player.sendMessage(ChatColor.AQUA + "Here is a list of commands you can do.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla rules: " + ChatColor.AQUA + "Shows you the rules of the road.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla signs: " + ChatColor.AQUA + "Shows you the road signs.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla speed: " + ChatColor.AQUA + "Shows you the speed limits.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla classes: " + ChatColor.AQUA + "Shows you the road classes.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla licence: " + ChatColor.AQUA + "Shows you how to get a licence.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla registration: " + ChatColor.AQUA + "Shows you how to get a registration plate.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla penalties: " + ChatColor.AQUA + "Shows you the penalties for breaking the rules.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla locations: " + ChatColor.AQUA + "Shows you the locations of the DVLA.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla help: " + ChatColor.AQUA + "Shows you this help page.");
+                        }
+
+                        return true;
+                    }
+                default:
+                    return false;
             }
         }
     }

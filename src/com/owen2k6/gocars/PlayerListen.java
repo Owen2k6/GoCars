@@ -8,7 +8,6 @@ package com.owen2k6.gocars;
 import org.bukkit.Material;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
 
@@ -22,22 +21,11 @@ public class PlayerListen extends PlayerListener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!event.hasBlock() || event.getClickedBlock().getType() != Material.BOAT) {
             Player p = event.getPlayer();
-            if (p.isInsideVehicle()) {
-                if (p.getVehicle() instanceof Boat) {
-                    if (checkBoats((Boat)p.getVehicle())) {
-                        BoatHandler boat = getBoatHandler((Boat)p.getVehicle());
-                        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-                            if (boat.delay == 0L) {
-                                boat.doArmSwing();
-                            }
-                        } else {
-                            boat.doRightClick();
-                        }
-
-                    }
-                }
+            if (p.isInsideVehicle() && p.getVehicle() instanceof Boat && checkBoats((Boat)p.getVehicle())) {
+                BoatHandler var3 = getBoatHandler((Boat)p.getVehicle());
             }
         }
+
     }
 
     public static boolean checkBoats(Boat boat) {
