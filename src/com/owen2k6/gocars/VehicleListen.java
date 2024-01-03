@@ -64,7 +64,7 @@ public class VehicleListen extends VehicleListener {
                     String filePath = "plugins/GoCars/" + player.getName() + ".txt";
                     File file = new File(filePath);
                     if (!file.exists()) {
-                        player.sendMessage(ChatColor.RED + "You are not a licenced driver. Your entry has been denied.");
+                        player.sendMessage(ChatColor.RED + "You do not have a licence, you cannot drive this vehicle on roads.");
                         event.getVehicle().getPassenger().eject();
                         event.getVehicle().eject();
                         event.setCancelled(true);
@@ -81,7 +81,7 @@ public class VehicleListen extends VehicleListener {
                         return;
                     }
 
-                    player.sendMessage(ChatColor.AQUA + "Approved entry to the vehicle.");
+                    player.sendMessage(ChatColor.AQUA + "Welcome Back to your Vehicle.");
                 }
 
                 boat.setMode((Integer)GoCars.playerModes.get(player));
@@ -110,7 +110,6 @@ public class VehicleListen extends VehicleListener {
             if (PlayerListen.checkBoats((Boat)event.getVehicle())) {
                 Player p = (Player)event.getVehicle().getPassenger();
                 BoatHandler var10000 = (BoatHandler)GoCars.boats.get(event.getVehicle().getEntityId());
-                Bukkit.broadcastMessage(ChatColor.RED + p.getName() + " has had a car crash!");
                 event.setDamage(0);
                 event.setCancelled(true);
             }

@@ -8,6 +8,8 @@ package com.owen2k6.gocars;
 import java.io.File;
 import org.bukkit.util.config.Configuration;
 
+//This config file is not generated as it is not used.
+
 public class config extends Configuration {
     private static config singleton;
 
@@ -18,8 +20,8 @@ public class config extends Configuration {
 
     private void write() {
         this.generateConfigOption("config-version", 0);
-        this.generateConfigOption("Insurance.Rate", 0.02);
-        this.generateConfigOption("National.Speed.Limit", 5.0);
+        this.generateConfigOption("Insurance.Rate", 0.02); //This is no longer in use
+        this.generateConfigOption("National.Speed.Limit", 5.0); //This is no longer in use
     }
 
     public void generateConfigOption(String key, Object defaultValue) {

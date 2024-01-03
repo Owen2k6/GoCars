@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="GoCars">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/GoCars.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

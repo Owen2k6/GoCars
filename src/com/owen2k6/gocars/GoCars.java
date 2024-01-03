@@ -30,7 +30,6 @@ public class GoCars extends JavaPlugin {
     public static HashMap<Integer, BoatHandler> boats = new HashMap();
     public static ArrayList<String> helmets = new ArrayList();
     public static GoCars plugin;
-    private static final String codename = "Caribbean";
     public static Logger log = Logger.getLogger("Minecraft");
 
     public GoCars() {
@@ -49,12 +48,12 @@ public class GoCars extends JavaPlugin {
         pm.registerEvent(Type.PLAYER_INTERACT, this.pl, Priority.Normal, this);
         this.populateHelmets();
         PluginDescriptionFile pdfFile = this.getDescription();
-        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (Caribbean) loaded");
+        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] loaded");
     }
 
     public void onDisable() {
         PluginDescriptionFile pdfFile = this.getDescription();
-        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] (Caribbean) disabled");
+        log.info("[" + pdfFile.getName() + "]: version [" + pdfFile.getVersion() + "] disabled");
     }
 
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
@@ -147,17 +146,6 @@ public class GoCars extends JavaPlugin {
                                 player.sendMessage(ChatColor.AQUA + "You are automatically registered when you get a licence.");
                                 player.sendMessage(ChatColor.AQUA + "Your registration plate is always with you no matter what vehicle you drive.");
                                 break;
-                            case "penalties":
-                                player.sendMessage(ChatColor.GOLD + "Penalties:");
-                                player.sendMessage(ChatColor.AQUA + "If you break the rules of the road, you will be fined.");
-                                player.sendMessage(ChatColor.AQUA + "We are able to monitor vehicles on the road network.");
-                                player.sendMessage(ChatColor.AQUA + "These fines are issued automatically.");
-                                player.sendMessage(ChatColor.AQUA + "Below is a list of penalties and what to expect.");
-                                player.sendMessage(ChatColor.AQUA + "Speeding: £0.51 per block over the speed limit.");
-                                player.sendMessage(ChatColor.AQUA + "Driving on the wrong side of the road: £4.00");
-                                player.sendMessage(ChatColor.AQUA + "Abandoning a vehicle: £2.00");
-                                player.sendMessage(ChatColor.AQUA + "Improper use of hard shoulder: £1.00");
-                                break;
                             case "locations":
                                 player.sendMessage(ChatColor.GOLD + "Locations:");
                                 player.sendMessage(ChatColor.AQUA + "DVLA Goplexia: " + ChatColor.AQUA + "X: 122 Z: -170");
@@ -199,19 +187,21 @@ public class GoCars extends JavaPlugin {
                                     long thirtyDaysAgo = currentTimestamp - 2592000L;
                                     daysAgo = (currentTimestamp - expiry) / 86400L;
                                     reader.close();
-                                } catch (FileNotFoundException var36) {
-                                    registrationCode = "Not on record.";
-                                    points = 0;
-                                    player.sendMessage(var36.toString());
-                                } catch (Exception var37) {
-                                    var37.printStackTrace();
-                                    player.sendMessage(var37.toString());
+                                } catch (FileNotFoundException e) {
+//                                    registrationCode = "Not on record.";
+//                                    points = 0;
+//                                    player.sendMessage(var36.toString());
+                                    player.sendMessage(ChatColor.RED+"This player does not have a licence.");
+                                    break;
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    player.sendMessage(e.toString());
                                 }
 
                                 if (!player.hasPermission("dvla.scan") && !target.equals(player.getName())) {
                                     player.sendMessage(ChatColor.GOLD + "DVLA System Search for " + target + " has returned the following:");
-                                    player.sendMessage(ChatColor.RED + "You lack permissions to view the Licence information of this driver.");
                                     player.sendMessage(ChatColor.AQUA + "Vehicle Registration: " + registrationCode);
+                                    player.sendMessage(ChatColor.RED + "Information has been redacted due to lack of permissions.");
                                 } else {
                                     player.sendMessage(ChatColor.GOLD + "DVLA System Search for " + target + " has returned the following:");
                                     player.sendMessage(ChatColor.AQUA + "Vehicle Registration: " + registrationCode);
@@ -230,9 +220,9 @@ public class GoCars extends JavaPlugin {
                                 player.sendMessage(ChatColor.WHITE + "/dvla classes: " + ChatColor.AQUA + "Shows you the road classes.");
                                 player.sendMessage(ChatColor.WHITE + "/dvla licence: " + ChatColor.AQUA + "Shows you how to get a licence.");
                                 player.sendMessage(ChatColor.WHITE + "/dvla registration: " + ChatColor.AQUA + "Shows you how to get a registration plate.");
-                                player.sendMessage(ChatColor.WHITE + "/dvla penalties: " + ChatColor.AQUA + "Shows you the penalties for breaking the rules.");
                                 player.sendMessage(ChatColor.WHITE + "/dvla locations: " + ChatColor.AQUA + "Shows you the locations of the DVLA.");
                                 player.sendMessage(ChatColor.WHITE + "/dvla help: " + ChatColor.AQUA + "Shows you this help page.");
+                                player.sendMessage(ChatColor.WHITE + "/dvla lookup: " + ChatColor.AQUA + "Shows you the licence information of a player.");
                         }
 
                         return true;

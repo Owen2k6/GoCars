@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="JoinsPlus">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/JoinsPlus.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

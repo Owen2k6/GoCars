@@ -1,20 +1,18 @@
 name: GoCars
 main: com.owen2k6.gocars.GoCars
-version: 1.0
+version: 0.3.1a
 author: Owen2k6
 commands:
-  gocars:
+  car:
     description: Turns your boat into a car
     usage: /<command>
-  goboat:
+  boat:
     description: Turns your car into a boat
     usage: /<command>
-  roadrules:
-    description: Shows the road rules
+  dvla:
+    description: Shows the DVLA commands
     usage: /<command>
-  speedlimits:
-    description: Shows the speed limit
-    usage: /<command>
-  roadsigns:
-    description: Shows the road signs
-    usage: /<command>
+permissions:
+    dvla.scan:
+        description: Allows you to see full information of any users licence.
+        default: op

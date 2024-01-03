@@ -19,7 +19,6 @@ import org.bukkit.util.Vector;
 
 public class BoatHandler {
     public final Boat boat;
-    private Vector previousLocation;
     private Vector previousMotion;
     private boolean wasMovingLastTick;
     public Calendar cal;
@@ -27,22 +26,17 @@ public class BoatHandler {
     private int entityID = 0;
     public long delay = 0L;
     public boolean isAttacking = false;
-    private boolean throttleChanged = false;
     private final double maxMomentum = 10.0;
-    private double rotationMultipler = 0.0;
+    private final double rotationMultipler = 0.0;
     private final double flyingMult = 1.0;
     private double throttle = 1.0;
     public double fromYaw = 0.0;
     public double toYaw = 0.0;
-    private float hoverHeight = 0.0F;
-    private boolean goingDown = false;
-    private boolean goingUp = false;
-    private boolean firstRun = true;
+    private final boolean firstRun = true;
     private final double DOWNWARD_DRIFT = -0.037999998673796664;
     private final double COMPENSATION = 0.038;
     private final double MAX_BUOYANCY = 0.1;
-    private float MAX_HOVER_HEIGHT = 1.0F;
-    private String ownerUsername;
+    private final String ownerUsername;
 
     public BoatHandler(Boat newBoat, int newMode, int ID, String ownerUsername) {
         this.boat = newBoat;
@@ -50,7 +44,7 @@ public class BoatHandler {
         this.entityID = ID;
         this.cal = Calendar.getInstance();
         this.previousMotion = this.boat.getVelocity().clone();
-        this.previousLocation = this.getLocation().toVector().clone();
+        Vector previousLocation = this.getLocation().toVector().clone();
         this.ownerUsername = ownerUsername;
         if (this.isMoving()) {
             this.wasMovingLastTick = true;
@@ -194,8 +188,8 @@ public class BoatHandler {
     }
 
     public void resetValues() {
-        this.goingDown = false;
-        this.goingUp = false;
+        boolean goingDown = false;
+        boolean goingUp = false;
         this.delay = 0L;
     }
 
@@ -211,11 +205,7 @@ public class BoatHandler {
             this.throttle = 0.0;
         }
 
-        if (this.throttle != 1.0) {
-            this.throttleChanged = true;
-        } else {
-            this.throttleChanged = false;
-        }
+        boolean throttleChanged = this.throttle != 1.0;
 
     }
 
@@ -235,12 +225,10 @@ public class BoatHandler {
     public void movementHandler(Vector vel) {
         Player p = this.getPlayer();
         Vector newvel = this.boat.getVelocity();
-        this.throttle = 5.0;
-        if (this.throttle != 1.0) {
-            this.speedUpBoat(this.throttle, newvel);
-        }
+        this.throttle = 10.0;
+        this.speedUpBoat(this.throttle, newvel);
 
-        this.MAX_HOVER_HEIGHT = 0.6F;
+        float MAX_HOVER_HEIGHT = 0.7F;
         int x = this.boat.getLocation().getBlockX();
         int y = this.boat.getLocation().getBlockY();
         int z = this.boat.getLocation().getBlockZ();
@@ -249,7 +237,7 @@ public class BoatHandler {
         Block block = null;
         this.getLocation().setYaw((float)(this.getYaw() * 6.0));
 
-        for(int i = 0; (float)i != this.MAX_HOVER_HEIGHT + 64.0F; ++i) {
+        for(int i = 0; (float)i != MAX_HOVER_HEIGHT + 64.0F; ++i) {
             block = this.boat.getWorld().getBlockAt(x, y - blockY, z);
             if (block.getType() != Material.AIR) {
                 if (block.getType() == Material.WATER) {
@@ -258,15 +246,15 @@ public class BoatHandler {
             }
 
             ++blockY;
-            if ((float)i > this.MAX_HOVER_HEIGHT + 1.0F) {
+            if ((float)i > MAX_HOVER_HEIGHT + 1.0F) {
                 goDown = true;
             }
         }
 
-        this.hoverHeight = (float)block.getY() + this.MAX_HOVER_HEIGHT * 2.0F;
-        if (this.boat.getLocation().getY() < (double)this.hoverHeight + 0.6) {
+        float hoverHeight = (float) block.getY() + MAX_HOVER_HEIGHT * 2.0F;
+        if (this.boat.getLocation().getY() < (double) hoverHeight + 0.6) {
             this.setMotionY(0.35);
-        } else if (goDown && this.boat.getLocation().getY() > (double)this.hoverHeight + 0.6) {
+        } else if (goDown && this.boat.getLocation().getY() > (double) hoverHeight + 0.6) {
             this.setMotionY(-0.25);
         } else {
             this.setMotionY(0.0);
@@ -291,10 +279,7 @@ public class BoatHandler {
 
         double currentX = vel.getX();
         double currentZ = vel.getZ();
-        boolean boostSteering = false;
-        if (playerVelocityX < 0.0 && currentX > 0.0 || playerVelocityX > 0.0 && currentX < 0.0) {
-            boostSteering = true;
-        }
+        boolean boostSteering = playerVelocityX < 0.0 && currentX > 0.0 || playerVelocityX > 0.0 && currentX < 0.0;
 
         if (!boostSteering && playerVelocityZ < 0.0 && currentZ > 0.0 || playerVelocityZ > 0.0 && currentZ < 0.0) {
             boostSteering = true;
@@ -313,8 +298,8 @@ public class BoatHandler {
     }
 
     public void doYaw(Location from, Location to) {
-        this.fromYaw = (double)from.getYaw();
-        this.toYaw = (double)to.getYaw();
+        this.fromYaw = from.getYaw();
+        this.toYaw = to.getYaw();
         if (this.toYaw >= this.fromYaw - 0.025 && this.toYaw <= this.fromYaw + 0.025) {
             to.setYaw((float)(this.fromYaw * 2.8));
         } else if (this.toYaw >= this.fromYaw - 0.7 && this.toYaw <= this.fromYaw + 0.7) {
