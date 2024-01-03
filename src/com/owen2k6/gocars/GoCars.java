@@ -29,7 +29,6 @@ public class GoCars extends JavaPlugin {
     public static HashMap<Player, Integer> playerModes = new HashMap();
     public static HashMap<Integer, BoatHandler> boats = new HashMap();
     public static ArrayList<String> helmets = new ArrayList();
-    public static GoCars plugin;
     public static Logger log = Logger.getLogger("Minecraft");
 
     public GoCars() {
@@ -167,7 +166,6 @@ public class GoCars extends JavaPlugin {
                                 String registrationCode = "";
                                 String Status = "";
                                 String issuedate = "";
-                                String expirydate = "";
                                 long daysAgo = 0L;
                                 int points = 0;
 
@@ -184,13 +182,9 @@ public class GoCars extends JavaPlugin {
                                     String expiryunix = reader.readLine();
                                     long expiry = Long.parseLong(expiryunix);
                                     long currentTimestamp = Instant.now().getEpochSecond();
-                                    long thirtyDaysAgo = currentTimestamp - 2592000L;
                                     daysAgo = (currentTimestamp - expiry) / 86400L;
                                     reader.close();
                                 } catch (FileNotFoundException e) {
-//                                    registrationCode = "Not on record.";
-//                                    points = 0;
-//                                    player.sendMessage(var36.toString());
                                     player.sendMessage(ChatColor.RED+"This player does not have a licence.");
                                     break;
                                 } catch (Exception e) {

@@ -21,8 +21,8 @@ public class PlayerListen extends PlayerListener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (!event.hasBlock() || event.getClickedBlock().getType() != Material.BOAT) {
             Player p = event.getPlayer();
-            if (p.isInsideVehicle() && p.getVehicle() instanceof Boat && checkBoats((Boat)p.getVehicle())) {
-                BoatHandler var3 = getBoatHandler((Boat)p.getVehicle());
+            if (p.isInsideVehicle() && p.getVehicle() instanceof Boat && checkBoats((Boat) p.getVehicle())) {
+                BoatHandler var3 = getBoatHandler((Boat) p.getVehicle());
             }
         }
 
@@ -33,6 +33,6 @@ public class PlayerListen extends PlayerListener {
     }
 
     public static BoatHandler getBoatHandler(Boat boat) {
-        return (BoatHandler)GoCars.boats.get(boat.getEntityId());
+        return GoCars.boats.get(boat.getEntityId());
     }
 }

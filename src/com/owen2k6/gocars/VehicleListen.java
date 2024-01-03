@@ -6,6 +6,7 @@
 package com.owen2k6.gocars;
 
 import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -32,11 +33,11 @@ public class VehicleListen extends VehicleListener {
 
     public void onVehicleMove(VehicleMoveEvent event) {
         if (event.getVehicle() instanceof Boat && event.getVehicle().getPassenger() instanceof Player) {
-            Player p = (Player)event.getVehicle().getPassenger();
-            if (p.isInsideVehicle() && PlayerListen.checkBoats((Boat)event.getVehicle())) {
+            Player p = (Player) event.getVehicle().getPassenger();
+            if (p.isInsideVehicle() && PlayerListen.checkBoats((Boat) event.getVehicle())) {
                 this.from = event.getFrom();
                 this.to = event.getTo();
-                Boat tempBoat = (Boat)event.getVehicle();
+                Boat tempBoat = (Boat) event.getVehicle();
                 Vector vel = tempBoat.getVelocity();
                 BoatHandler boat = PlayerListen.getBoatHandler(tempBoat);
                 boat.doYaw(this.from, this.to);
@@ -53,12 +54,12 @@ public class VehicleListen extends VehicleListener {
 
     public void onVehicleEnter(VehicleEnterEvent event) {
         if (event.getEntered() instanceof Player) {
-            Player player = (Player)event.getEntered();
+            Player player = (Player) event.getEntered();
             if (event.getVehicle() instanceof Boat) {
                 GoCars.playerModes.putIfAbsent(player, 0);
                 BoatHandler boat;
-                if (!PlayerListen.checkBoats((Boat)event.getVehicle())) {
-                    boat = new BoatHandler((Boat)event.getVehicle(), (Integer)GoCars.playerModes.get(player), event.getVehicle().getEntityId(), player.getName());
+                if (!PlayerListen.checkBoats((Boat) event.getVehicle())) {
+                    boat = new BoatHandler((Boat) event.getVehicle(), GoCars.playerModes.get(player), event.getVehicle().getEntityId(), player.getName());
                     GoCars.boats.put(boat.getEntityId(), boat);
                     player.sendMessage(ChatColor.AQUA + "The DVLA is checking your license...");
                     String filePath = "plugins/GoCars/" + player.getName() + ".txt";
@@ -71,7 +72,7 @@ public class VehicleListen extends VehicleListener {
                         return;
                     }
                 } else {
-                    boat = (BoatHandler)GoCars.boats.get(event.getVehicle().getEntityId());
+                    boat = GoCars.boats.get(event.getVehicle().getEntityId());
                     if (!boat.isOwner(player)) {
                         player.sendMessage(ChatColor.RED + "You are not the owner of this vehicle.");
                         player.sendMessage(ChatColor.RED + "This vehicle is registered to " + boat.getOwnerUsername() + ".");
@@ -84,7 +85,7 @@ public class VehicleListen extends VehicleListener {
                     player.sendMessage(ChatColor.AQUA + "Welcome Back to your Vehicle.");
                 }
 
-                boat.setMode((Integer)GoCars.playerModes.get(player));
+                boat.setMode(GoCars.playerModes.get(player));
                 super.onVehicleEnter(event);
             }
         }
@@ -92,9 +93,9 @@ public class VehicleListen extends VehicleListener {
     }
 
     public void onVehicleExit(VehicleExitEvent event) {
-        if (event.getExited() instanceof Player && event.getVehicle() instanceof Boat && PlayerListen.checkBoats((Boat)event.getVehicle())) {
-            BoatHandler boat = (BoatHandler)GoCars.boats.get(event.getVehicle().getEntityId());
-            Player p = (Player)event.getExited();
+        if (event.getExited() instanceof Player && event.getVehicle() instanceof Boat && PlayerListen.checkBoats((Boat) event.getVehicle())) {
+            BoatHandler boat = (BoatHandler) GoCars.boats.get(event.getVehicle().getEntityId());
+            Player p = (Player) event.getExited();
             if (boat.getMode() == 3) {
                 p.sendMessage(ChatColor.LIGHT_PURPLE + "Vehicle Parked.");
             }
@@ -107,9 +108,7 @@ public class VehicleListen extends VehicleListener {
 
     public void onVehicleDamage(VehicleDamageEvent event) {
         if (event.getVehicle() instanceof Boat && event.getVehicle().getPassenger() instanceof Player) {
-            if (PlayerListen.checkBoats((Boat)event.getVehicle())) {
-                Player p = (Player)event.getVehicle().getPassenger();
-                BoatHandler var10000 = (BoatHandler)GoCars.boats.get(event.getVehicle().getEntityId());
+            if (PlayerListen.checkBoats((Boat) event.getVehicle())) {
                 event.setDamage(0);
                 event.setCancelled(true);
             }
