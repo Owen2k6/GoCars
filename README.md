@@ -1,1 +1,6 @@
-Hello Developers! This is based off SkyPirates which was made back in the early days, it has no licence attached and nor does the original source code, However by now, only the boats mechanics are kept, the rest has been rewritten or changed beyond recognition
+# GoCars
+## Based off [Fullwall's SkyPirates](https://github.com/fullwall/SkyPirates)
+
+This plugin is used on GoplexMC to allow users to drive, but theres no point in having the source code for this hidden :p 
+
+I will work on how to set it up as it isnt automatic in any way :skull:
