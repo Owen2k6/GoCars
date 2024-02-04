@@ -130,8 +130,9 @@ public class BoatHandler {
     public void movementHandler(Vector vel) {
         Player p = this.getPlayer();
         Vector newvel = this.boat.getVelocity();
-        this.throttle = 10.0;
+        this.throttle = 15.0;
         this.speedUpBoat(this.throttle, newvel);
+        this.boat.setMaxSpeed(100000000);
 
         float MAX_HOVER_HEIGHT = 0.7F;
         int x = this.boat.getLocation().getBlockX();

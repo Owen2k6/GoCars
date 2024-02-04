@@ -148,7 +148,7 @@ public class GoCars extends JavaPlugin {
                             case "locations":
                                 player.sendMessage(ChatColor.GOLD + "Locations:");
                                 player.sendMessage(ChatColor.AQUA + "DVLA Goplexia: " + ChatColor.AQUA + "X: 122 Z: -170");
-                                player.sendMessage(ChatColor.AQUA + "DVLA Omegamall: " + ChatColor.AQUA + "Under Construction");
+                                player.sendMessage(ChatColor.AQUA + "DVLA Omegamall: " + ChatColor.AQUA + "X: 33 Z: -866 Ground Floor");
                                 break;
                             case "lookup":
                                 if (split.length == 2) {
